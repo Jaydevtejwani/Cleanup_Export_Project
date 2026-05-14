@@ -63,3 +63,43 @@ print(final_df)
 
 # save to excel
 final_df.to_excel("output_pairs.xlsx", index=False)
+
+
+
+
+
+import pandas as pd
+
+# Excel read
+df = pd.read_excel("input.xlsx")
+df = df.rename(columns={"Full Name": "name"})
+
+# normalize (order independent key)
+def normalize(x):
+    return ' '.join(sorted(str(x).lower().strip().split()))
+
+df['key'] = df['name'].apply(normalize)
+
+# find duplicates (same words but different order)
+dup = df[df.duplicated('key', keep=False)].copy()
+
+# remove exact same duplicates inside groups
+dup = dup.sort_values('key')
+
+# create final pairs (one row per group)
+result = dup.groupby('key')['name'].apply(list).reset_index()
+
+rows = []
+for names in result['name']:
+    if len(names) >= 2:
+        rows.append({
+            "name_1": names[0],
+            "name_2": names[1]
+        })
+
+final_df = pd.DataFrame(rows)
+
+print(final_df)
+
+# save output
+final_df.to_excel("reverse_match_output.xlsx", index=False)
