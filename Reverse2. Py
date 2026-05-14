@@ -32,3 +32,34 @@ print(result)
 
 # optional save
 result.to_excel("name_pairs.xlsx", index=False)
+import pandas as pd
+
+# Excel read karo
+df = pd.read_excel("input.xlsx")
+
+# column rename (agar Full Name hai)
+df = df.rename(columns={"Full Name": "name"})
+
+# normalize function
+def normalize(x):
+    return ' '.join(sorted(str(x).lower().strip().split()))
+
+df['key'] = df['name'].apply(normalize)
+
+# same key wale groups lo
+dup = df[df.duplicated('key', keep=False)]
+
+# pair list banao
+result = dup.groupby('key')['name'].apply(list).reset_index()
+
+rows = []
+for names in result['name']:
+    if len(names) > 1:
+        rows.append([names[0], names[1]])
+
+final_df = pd.DataFrame(rows, columns=["name_1", "name_2"])
+
+print(final_df)
+
+# save to excel
+final_df.to_excel("output_pairs.xlsx", index=False)
