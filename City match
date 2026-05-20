@@ -1,0 +1,30 @@
+import pandas as pd
+from rapidfuzz import fuzz
+
+# Excel/CSV read
+df = pd.read_excel("cities.xlsx")
+
+cities = df["A"].dropna().tolist()
+
+matches = []
+
+threshold = 95
+
+for i in range(len(cities)):
+    for j in range(i + 1, len(cities)):
+        
+        city1 = str(cities[i]).lower().strip()
+        city2 = str(cities[j]).lower().strip()
+
+        score = fuzz.ratio(city1, city2)
+
+        if score >= threshold:
+            matches.append([city1, city2, score])
+
+# Result dataframe
+result = pd.DataFrame(matches, columns=["City1", "City2", "Score"])
+
+print(result)
+
+# Save output
+result.to_excel("matched_cities.xlsx", index=False)
